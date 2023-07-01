@@ -1,8 +1,3 @@
-/**
- * @license
- * Copyright 2019 Google LLC. All Rights Reserved.
- * SPDX-License-Identifier: Apache-2.0
- */
 let map;
 let marker;
 let geocoder;
@@ -48,9 +43,7 @@ function initMap() {
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(inputText);
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(submitButton);
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(clearButton);
-  map.controls[google.maps.ControlPosition.LEFT_TOP].push(
-    instructionsElement
-  );
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(instructionsElement);
   map.controls[google.maps.ControlPosition.LEFT_TOP].push(responseDiv);
   marker = new google.maps.Marker({
     map,
@@ -69,6 +62,7 @@ function initMap() {
 
 function clear() {
   marker.setMap(null);
+  responseDiv.style.display = "none";
 }
 
 function geocode(request) {
@@ -81,6 +75,7 @@ function geocode(request) {
       map.setCenter(results[0].geometry.location);
       marker.setPosition(results[0].geometry.location);
       marker.setMap(map);
+      responseDiv.style.display = "block";
       response.innerText = JSON.stringify(result, null, 2);
       return results;
     })
