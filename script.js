@@ -1,127 +1,77 @@
-let map, infoWindow, marker, geocoder, responseDiv, response;
+let map, directionsService, directionsRenderer, markerStart, markerEnd;
 
 function initMap() {
-  map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: -34.397, lng: 150.644 },
-    zoom: 8,
-    mapTypeControl: false,
+  map = new google.maps.Map(document.getElementById('map'), {
+    zoom: 7,
+    center: { lat: 41.85, lng: -87.65 }
   });
 
-  geocoder = new google.maps.Geocoder();
-  infoWindow = new google.maps.InfoWindow();
-  
-  const inputText = document.createElement("input");
-  inputText.type = "text";
-  inputText.placeholder = "Enter a location";
+  directionsService = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer();
+  directionsRenderer.setMap(map);
+
+  const startInput = document.createElement("input");
+  startInput.type = "text";
+  startInput.id = "start";
+  startInput.placeholder = "Enter a starting location";
+
+  const endInput = document.createElement("input");
+  endInput.type = "text";
+  endInput.id = "end";
+  endInput.placeholder = "Enter a destination";
+
+  const modeSelect = document.createElement("select");
+  modeSelect.id = "mode";
+  modeSelect.options.add(new Option("Driving", "DRIVING"));
+  modeSelect.options.add(new Option("Walking", "WALKING"));
+  modeSelect.options.add(new Option("Bicycling", "BICYCLING"));
+  modeSelect.options.add(new Option("Transit", "TRANSIT"));
 
   const submitButton = document.createElement("input");
   submitButton.type = "button";
-  submitButton.value = "Geocode";
-  submitButton.classList.add("button", "button-primary");
+  submitButton.value = "Submit";
+  submitButton.id = "submit";
 
-  const clearButton = document.createElement("input");
-  clearButton.type = "button";
-  clearButton.value = "Clear";
-  clearButton.classList.add("button", "button-secondary");
-  
-  response = document.createElement("pre");
-  response.id = "response";
-  response.innerText = "";
-
-  responseDiv = document.createElement("div");
-  responseDiv.id = "response-container";
-  responseDiv.appendChild(response);
-
-  const instructionsElement = document.createElement("p");
-  instructionsElement.id = "instructions";
-  instructionsElement.innerHTML = "<strong>Instructions</strong>: Enter an address in the textbox to geocode or click on the map to reverse geocode.";
-  
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(inputText);
+  map.controls[google.maps.ControlPosition.TOP_LEFT].push(startInput);
+  map.controls[google.maps.ControlPosition.TOP_LEFT].push(endInput);
+  map.controls[google.maps.ControlPosition.TOP_LEFT].push(modeSelect);
   map.controls[google.maps.ControlPosition.TOP_LEFT].push(submitButton);
-  map.controls[google.maps.ControlPosition.TOP_LEFT].push(clearButton);
-  map.controls[google.maps.ControlPosition.LEFT_TOP].push(instructionsElement);
-  map.controls[google.maps.ControlPosition.LEFT_TOP].push(responseDiv);
-  
-  marker = new google.maps.Marker({
-    map,
-  });
-  
-  map.addListener("click", (e) => {
-    geocode({ location: e.latLng });
-  });
 
-  submitButton.addEventListener("click", () =>
-    geocode({ address: inputText.value })
-  );
-  
-  clearButton.addEventListener("click", () => {
-    clear();
+  submitButton.addEventListener("click", function() {
+    calculateAndDisplayRoute(directionsService, directionsRenderer);
   });
-  
-  clear();
-  
-  const locationButton = document.createElement("button");
-  locationButton.textContent = "Pan to Current Location";
-  locationButton.classList.add("custom-map-control-button");
-  map.controls[google.maps.ControlPosition.TOP_CENTER].push(locationButton);
-  
-  locationButton.addEventListener("click", () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const pos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          };
+}
 
-          infoWindow.setPosition(pos);
-          infoWindow.setContent("Location found.");
-          infoWindow.open(map);
-          map.setCenter(pos);
-        },
-        () => {
-          handleLocationError(true, infoWindow, map.getCenter());
-        }
-      );
+function calculateAndDisplayRoute(directionsService, directionsRenderer) {
+  const start = document.getElementById('start').value;
+  const end = document.getElementById('end').value;
+  const selectedMode = document.getElementById('mode').value;
+
+  directionsService.route({
+    origin: start,
+    destination: end,
+    travelMode: google.maps.TravelMode[selectedMode]
+  }, function(response, status) {
+    if (status === 'OK') {
+      directionsRenderer.setDirections(response);
+
+      // Remove old markers, if any
+      if (markerStart) markerStart.setMap(null);
+      if (markerEnd) markerEnd.setMap(null);
+
+      // Place a marker at the start and end points
+      markerStart = new google.maps.Marker({
+        position: response.routes[0].legs[0].start_location,
+        map: map
+      });
+      markerEnd = new google.maps.Marker({
+        position: response.routes[0].legs[0].end_location,
+        map: map
+      });
     } else {
-      handleLocationError(false, infoWindow, map.getCenter());
+      window.alert('Directions request failed due to ' + status);
     }
   });
 }
-
-function handleLocationError(browserHasGeolocation, infoWindow, pos) {
-  infoWindow.setPosition(pos);
-  infoWindow.setContent(
-    browserHasGeolocation
-      ? "Error: The Geolocation service failed."
-      : "Error: Your browser doesn't support geolocation."
-  );
-  infoWindow.open(map);
-}
-
-function clear() {
-  marker.setMap(null);
-  responseDiv.style.display = "none";
-}
-
-function geocode(request) {
-  clear();
-  geocoder
-    .geocode(request)
-    .then((result) => {
-      const { results } = result;
-
-      map.setCenter(results[0].geometry.location);
-      marker.setPosition(results[0].geometry.location);
-      marker.setMap(map);
-      responseDiv.style.display = "block";
-      response.innerText = results[0].formatted_address;  // Display only the formatted address
-      return results;
-    })
-    .catch((e) => {
-      alert("Geocode was not successful for the following reason: " + e);
-    });
-}
-
 
 window.initMap = initMap;

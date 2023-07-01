@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Map</title>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBOaW8jvX_1FhPRdh6PbLtknj5lYBVhRMk&callback=initMap" async defer></script>
+    <link rel="stylesheet" type="text/css" href="distance.css">
+  </head>
+  <body>
+    <div id="floating-panel">
+      <strong>Start:</strong>
+      <select id="start">
+        <!-- Your start options -->
+      </select>
+      <br />
+      <strong>End:</strong>
+      <select id="end">
+        <!-- Your end options -->
+      </select>
+      <br />
+      <b>Mode of Travel: </b>
+      <select id="mode">
+        <option value="DRIVING">Driving</option>
+        <option value="WALKING">Walking</option>
+        <option value="BICYCLING">Bicycling</option>
+        <option value="TRANSIT">Transit</option>
+      </select>
+      <button id="submit">Submit</button>
+    </div>
+    <div id="map" style="height:100vh; width:100%;"></div>
+    <script src="script.js"></script>
+  </body>
+</html>
