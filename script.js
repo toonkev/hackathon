@@ -115,12 +115,13 @@ function geocode(request) {
       marker.setPosition(results[0].geometry.location);
       marker.setMap(map);
       responseDiv.style.display = "block";
-      response.innerText = JSON.stringify(result, null, 2);
+      response.innerText = results[0].formatted_address;  // Display only the formatted address
       return results;
     })
     .catch((e) => {
       alert("Geocode was not successful for the following reason: " + e);
     });
 }
+
 
 window.initMap = initMap;
