@@ -8,6 +8,7 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors());
+app.use(express.static(__dirname)); // Added this line
 
 app.get('/directions', async (req, res) => {
     const { origin, destination } = req.query;
