@@ -57,25 +57,26 @@ function calculateAndDisplayRoute() {
       destination: end,
       travelMode: google.maps.TravelMode[selectedMode],
     })
-    .then((response) => {
-      directionsRenderer.setDirections(response);
+      .then((response) => {
+        directionsRenderer.setDirections(response);
 
-      // Get the commute times
-      const route = response.routes[0];
-      const leg = route.legs[0];
-    
-      // Display the commute times
-      document.getElementById("commuteTimes").textContent = `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`;
-      
-      // Call the weather API
-      const destinationLatLng = leg.end_location;
-      displayWeather(destinationLatLng.lat(), destinationLatLng.lng());
-    })
-    .catch((e) => window.alert("Directions request failed due to " + e));
+        // Get the commute times
+        const route = response.routes[0];
+        const leg = route.legs[0];
+
+        // Display the commute times
+        document.getElementById("commuteTimes").textContent = `Distance: ${leg.distance.text}, Duration: ${leg.duration.text}`;
+
+        // Call the weather API
+        const destinationLatLng = leg.end_location;
+        displayWeather(destinationLatLng.lat(), destinationLatLng.lng());
+      })
+      .catch((e) => window.alert("Directions request failed due to " + e));
   } else {
     drawFlightPath(start, end);
   }
 }
+
 
 // Place your API Key here
 const weatherApiKey = '9d38ad912c185ff8ef97df4975c9cbd0';
