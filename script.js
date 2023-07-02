@@ -6,6 +6,11 @@ function initMap() {
     center: { lat: 41.85, lng: -87.65 }
   });
 
+  trafficLayer = new google.maps.TrafficLayer(); 
+  transitLayer = new google.maps.TransitLayer();
+  bicyclingLayer = new google.maps.BicyclingLayer();
+
+  
   const startInput = document.createElement("input");
   startInput.type = "text";
   startInput.id = "start";
@@ -44,6 +49,18 @@ function calculateAndDisplayRoute() {
   const end = document.getElementById("end").value;
   const selectedMode = document.getElementById("mode").value;
 
+  trafficLayer.setMap(null);
+  transitLayer.setMap(null);
+  bicyclingLayer.setMap(null);
+
+  if (selectedMode === "DRIVING") {
+    trafficLayer.setMap(map);
+  } else if (selectedMode === "TRANSIT") {
+    transitLayer.setMap(map);
+  } else if (selectedMode === "BICYCLING") {
+    bicyclingLayer.setMap(map);
+  }
+  
   if (directionsRenderer) directionsRenderer.setMap(null); // Remove old route if it exists
   if (flightPath) flightPath.setMap(null); // Remove old flight path if it exists
 
