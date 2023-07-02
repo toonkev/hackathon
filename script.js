@@ -82,19 +82,94 @@ function calculateAndDisplayRoute() {
 const weatherApiKey = '9d38ad912c185ff8ef97df4975c9cbd0';
 
 function displayWeather(lat, lon) {
-    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${weatherApiKey}`)
-    .then(response => response.json())
-    .then(data => {
-        const weatherDiv = document.getElementById('weather');
-        weatherDiv.innerHTML = `
-            <h2>Weather at destination:</h2>
-            <p>${data.weather[0].main}</p>
-            <p>Temperature: ${data.main.temp}°C</p>
-            <p>Humidity: ${data.main.humidity}%</p>
-            <p>Wind speed: ${data.wind.speed} m/s</p>
-        `;
-    })
-    .catch(err => console.log(err));
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${weatherApiKey}`)
+  .then(response => response.json())
+  .then(data => {
+      const weatherDiv = document.getElementById('weather');
+      const temperature = data.main.temp;
+      const humidity = data.main.humidity;
+      const windSpeed = data.wind.speed;
+      let recommendation = '';
+      let accessories = '';
+
+      if (temperature < 0) {
+          recommendation = '🥶 It\'s freezing outside! Layer up with a warm coat, gloves and a hat.';
+          accessories = 'Don\'t forget your scarf to keep the chill away!';
+      } else if (temperature < 10) {
+          recommendation = '🧥 It\'s quite chilly. A good jacket and a warm sweater would be perfect.';
+          accessories = 'Maybe grab a beanie and gloves just in case.';
+      } else if (temperature < 20) {
+          recommendation = '👕 It\'s a bit cool. A long-sleeved shirt should be fine.';
+          accessories = 'You might want a light scarf if it gets windy.';
+      } else {
+          recommendation = '🌞 It\'s warm! T-shirts and shorts are perfect.';
+          accessories = 'Don\'t forget your sunglasses!';
+      }
+
+      if (humidity > 80) {
+          accessories += ' It\'s pretty humid today, so a water bottle would be a great idea.';
+      } else if (humidity < 20) {
+          accessories += ' The air is dry today, so don\'t forget your moisturizer!';
+      }
+
+      if (windSpeed > 8) {
+          accessories += ' It\'s a bit windy, so you might want to secure your hat.';
+      }
+
+      weatherDiv.innerHTML = `
+          <h2>📍Weather at destination:</h2>
+          <p>🌤️ ${data.weather[0].main}</p>
+          <p>🌡️ Temperature: ${temperature}°C</p>
+          <p>💧 Humidity: ${humidity}%</p>
+          <p>💨 Wind speed: ${windSpeed} m/s</p>
+          <p>👕 What to wear: ${recommendation}</p>
+          <p>🎒 What to bring: ${accessories}</p>
+      `;
+  })
+  .catch(err => console.log(err));
+}
+function updateRouteInfo(origin, destination) {
+  displayWeather(destination.lat, destination.lng);  // Update weather
+
+  // Update congestion
+  displayCongestion(origin, destination);
+}
+
+// congestion.js
+const googleApiKey = 'AIzaSyBOaW8jvX_1FhPRdh6PbLtknj5lYBVhRMk';
+
+function displayCongestion(origin, destination) {
+  fetch(`http://localhost:3000/directions?origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}`)
+  .then(response => response.json())
+  .then(data => {
+      const congestionDiv = document.getElementById('congestion');
+
+      if (data.status === "OK") {
+          const route = data.routes[0].legs[0];
+
+          // Get incident data, if any
+          let incidents = 'No incidents reported on this route.';
+          if (route.steps.some(step => step.hasOwnProperty('warnings'))) {
+              incidents = 'Be aware of the following incidents on this route:<ul>'
+              route.steps.forEach(step => {
+                  if (step.hasOwnProperty('warnings')) {
+                      incidents += `<li>${step.warnings[0]}</li>`;
+                  }
+              });
+              incidents += '</ul>';
+          }
+
+          congestionDiv.innerHTML = `
+              <h2>🚦Route Information:</h2>
+              <p>🛣️ Distance: ${route.distance.text}</p>
+              <p>⏱️ Duration (with current traffic): ${route.duration_in_traffic.text}</p>
+              <p>⚠️ Incidents: ${incidents}</p>
+          `;
+      } else {
+          congestionDiv.innerHTML = `<p>Couldn't fetch route information. Reason: ${data.status}</p>`;
+      }
+  })
+  .catch(err => console.log(err));
 }
 
 function drawFlightPath(start, end) {
